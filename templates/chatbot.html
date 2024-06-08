@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <title>Chatbot AI</title>
+</head>
+<body>
+    <div class="wrapper">
+        <div class="title">Guyton and Hall Textbook of Medical Physiology</div>
+        <div class="box" id="message-box">
+            <!-- Messages will be appended here dynamically -->
+        </div>
+        
+        <div class="typing-area">
+            <div class="input-field">
+                <input type="text" id="user-input" placeholder="Type your message" required>
+                <button onclick="sendMessage()">Send</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function appendMessage(message, sender) {
+            const messageBox = document.getElementById('message-box');
+            const messageElement = document.createElement('div');
+            messageElement.className = sender === 'user' ? 'item right' : 'item';
+            messageElement.innerHTML = `
+                <div class="icon">
+                    <i class="fa fa-${sender === 'user' ? 'user' : 'robot'}"></i>
+                </div>
+                <div class="msg">
+                    <p>${message}</p>
+                </div>
+            `;
+            messageBox.appendChild(messageElement);
+            // Scroll to the bottom of the message box
+            messageBox.scrollTop = messageBox.scrollHeight;
+        }
+
+        function sendMessage() {
+            const userInput = document.getElementById('user-input').value.trim();
+            if (userInput === '') return;
+
+            appendMessage(userInput, 'user');
+            document.getElementById('user-input').value = '';
+
+            fetch('/process', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ user_question: userInput })
+            })
+            .then(response => response.json())
+            .then(data => {
+                const botResponse = data.output;
+                appendMessage(botResponse, 'robot');
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
+    </script>
+</body>
+</html>
